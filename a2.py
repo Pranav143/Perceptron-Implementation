@@ -2,9 +2,11 @@ import argparse
 import numpy as np
 import math
 import matplotlib.pyplot as plt
-from dispkernel import *
+
 
 # Command Line Arguments
+# These commands essentially allow running of the file from command line by specifying the key parameters 
+
 parser = argparse.ArgumentParser(description='generate training and validation data for assignment 2')
 parser.add_argument('trainingfile', help='name stub for training data and label output in csv format', default="train")
 parser.add_argument('validationfile', help='name stub for validation data and label output in csv format',
@@ -40,7 +42,7 @@ print("number of epoch = ", args.numepoch)
 print("activation function is ", args.actfunction)
 
 # Set some global variables
-seed = args.seed
+seed = args.seed  # This is the random seed generator value we set so as to allow reproducible results
 lr = args.learningrate
 epochs = args.numepoch
 activation = str(args.actfunction)
@@ -70,7 +72,7 @@ def relu(x):
     return np.where(x > 0, x, 0)
 
 
-def accuracy(prediction, label):
+def accuracy(prediction, label):  #Strictly speaking, using such a naive accuracy measure isn't the best call, but it serves for this simple project
     num_correct = 0
     prediction = np.array(prediction)
     prediction = np.where(prediction >= 0.5, 1, 0)
@@ -87,10 +89,10 @@ accuracy_array = [0]*epochs
 validation_loss = [0]*epochs
 validation_accuracy = [0]*epochs
 
-predictions = np.zeros_like(train_label)
-validation_prediction = np.zeros_like(valid_label)
+predictions = np.zeros_like(train_label)  # This array stores the output of our model every training epoch
+validation_prediction = np.zeros_like(valid_label)  # Similar as above, but for the validation data 
 gradient_tensor = np.zeros((predictions.shape[0], 10))  # So a 200 row, 10 column matrix.
-                                                            # Each row is a training point,and each column is a parameter (w_0 --- w_8 and b)
+                                                        # Each row is a training point,and each column is a parameter (w_0 --- w_8 and b)
 
 for i in range(epochs):
     if activation == 'linear':
@@ -103,7 +105,7 @@ for i in range(epochs):
         predictions += np.squeeze(relu(train_data.dot(weights) + bias))
         validation_prediction += np.squeeze(relu(valid_data.dot(weights) + bias))
 
-    loss = np.power((predictions - train_label), 2)  # This is an array for whole training set
+    loss = np.power((predictions - train_label), 2)  # This is an array for whole training set. Utilizing mean squared error
 
     # Collect information for graphing later on
     loss_array[i] += np.mean(loss)
@@ -116,9 +118,9 @@ for i in range(epochs):
     if args.actfunction == 'linear':
         for row in range(1, len(predictions), 1):
             for column in range(0, 10, 1):
-                if column == 9:
+                if column == 9:  # For the bias 
                     gradient_tensor[row][column] += 2*(predictions[row] - train_label[row])
-                else:
+                else:  # For the weights
                     gradient_tensor[row][column] += 2*(predictions[row] - train_label[row]) * train_data[row][column]
         # Now, we average each column
         average_mse = np.mean(gradient_tensor, axis=0)
@@ -129,9 +131,9 @@ for i in range(epochs):
     if args.actfunction == 'sigmoid':
         for row in range(1, len(predictions), 1):
             for column in range(0, 10, 1):
-                if column == 9:
+                if column == 9:  # For the bias
                     gradient_tensor[row][column] += 2*(predictions[row] - train_label[row]) * predictions[row] * (1 - predictions[row])
-                else:
+                else:  # For the weights
                     gradient_tensor[row][column] += 2*(predictions[row] - train_label[row]) * train_data[row][column] * predictions[row] * (1 - predictions[row])
         # Now, we average each column
         average_mse = np.mean(gradient_tensor, axis=0)
@@ -142,12 +144,12 @@ for i in range(epochs):
     if args.actfunction == 'relu':
         for row in range(1, len(predictions), 1):
             for column in range(0, 10, 1):
-                if column == 9:
+                if column == 9:  # For the bias
                     if predictions[row] > 0:
                         gradient_tensor[row][column] += 2*(predictions[row] - train_label[row])
-                    else:
+                    else: 
                         gradient_tensor[row][column] += 0
-                else:
+                else:  # For the weights
                     if predictions[row] > 0:
                         gradient_tensor[row][column] += 2*(predictions[row] - train_label[row]) * train_data[row][column]
                     else:
@@ -191,6 +193,4 @@ plt.title('Training and Validation Accuracy by Epoch. learning rate: ' + str(lr)
 plt.legend(['training accuracy', 'validation accuracy'])
 plt.tight_layout()
 plt.show()
-
-dispKernel(weights, 3, 9)
 
