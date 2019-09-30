@@ -114,7 +114,8 @@ for i in range(epochs):
     validation_accuracy[i] += accuracy(validation_prediction, valid_label)
 
     # Now have to do gradient descent step. Find gradient with respect to weights and bias
-
+    # Note, we are only tracking the validation accuracy and loss for plotting, we do not apply backpropogation to it
+    
     if args.actfunction == 'linear':
         for row in range(1, len(predictions), 1):
             for column in range(0, 10, 1):
